@@ -126,7 +126,16 @@ const loginUser = async (req, res) => {
       },
     );
 
-    return res.status(200).json({ msg: "Login Successful", token });
+    return res.status(200).json({
+      msg: "Login Successful",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: "Internal Server Error" });
