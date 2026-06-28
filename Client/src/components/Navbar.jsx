@@ -4,6 +4,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
   const logout = () => {
     localStorage.clear();
@@ -16,12 +17,57 @@ const Navbar = () => {
         <NavLink to="/" className="text-2xl font-bold text-blue-400">
           CourseHub
         </NavLink>
-        <div className="flex items-center gap-6">
+
+        <div className="flex items-center gap-5">
           <NavLink to="/" className="hover:text-blue-400">
             Home
           </NavLink>
 
-          {!token ? (
+          {/* Student */}
+          {token && role === "student" && (
+            <>
+              <NavLink to="/cart" className="hover:text-blue-400">
+                Cart
+              </NavLink>
+
+              <NavLink to="/my-courses" className="hover:text-blue-400">
+                My Courses
+              </NavLink>
+
+              <NavLink to="/profile" className="hover:text-blue-400">
+                Profile
+              </NavLink>
+            </>
+          )}
+
+          {/* Instructor */}
+          {token && role === "instructor" && (
+            <>
+              <NavLink to="/instructor" className="hover:text-blue-400">
+                Dashboard
+              </NavLink>
+
+              <NavLink to="/profile" className="hover:text-blue-400">
+                Profile
+              </NavLink>
+            </>
+          )}
+
+          {/* Admin */}
+          {token && role === "admin" && (
+            <>
+              <NavLink to="/admin" className="hover:text-blue-400">
+                Dashboard
+              </NavLink>
+
+              <NavLink to="/profile" className="hover:text-blue-400">
+                Profile
+              </NavLink>
+            </>
+          )}
+
+          {/* Guest */}
+          {!token && (
             <>
               <NavLink to="/login" className="hover:text-blue-400">
                 Login
@@ -34,27 +80,16 @@ const Navbar = () => {
                 Register
               </NavLink>
             </>
-          ) : (
-            <>
-              <NavLink to="/my-courses" className="hover:text-blue-400">
-                My Courses
-              </NavLink>
+          )}
 
-              <NavLink to="/cart" className="hover:text-blue-400">
-                Cart
-              </NavLink>
-
-              <NavLink to="/profile" className="hover:text-blue-400">
-                Profile
-              </NavLink>
-
-              <button
-                onClick={logout}
-                className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 cursor-pointer"
-              >
-                Logout
-              </button>
-            </>
+          {/* Logout */}
+          {token && (
+            <button
+              onClick={logout}
+              className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 cursor-pointer"
+            >
+              Logout
+            </button>
           )}
         </div>
       </div>
