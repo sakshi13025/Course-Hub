@@ -6,6 +6,7 @@ const {
   loginUser,
   getProfile,
   updateProfile,
+  deleteProfile,
 } = require("../controllers/userController");
 
 const authentication = require("../middlewares/auth");
@@ -15,5 +16,6 @@ router.post("/login", loginUser);
 
 router.get("/profile", authentication, getProfile);
 router.put("/update-profile", authentication, updateProfile);
+router.delete("/delete-profile", authentication, deleteProfile);
 
 module.exports = router;

@@ -145,7 +145,7 @@ const loginUser = async (req, res) => {
 // Get Profile
 const getProfile = async (req, res) => {
   try {
-    let user = await userModel.findById(req.userId);
+    let user = await userModel.findById(req.userId).select("-password");
 
     if (!user) {
       return res.status(404).json({ msg: "User Not Found" });
@@ -161,13 +161,16 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     let userData = req.body;
+
     if (!userData || Object.keys(userData).length === 0) {
-      return res.status(400).json({ msg: "Bad Request ! No Data Provided" });
+      return res.status(400).json({
+        msg: "Bad Request ! No Data Provided",
+      });
     }
 
-    let { name, email, contactNo, password, profileImage, bio } = userData;
+    let { name, email, contactNo } = userData;
 
-    if (name) {
+    if (name !== undefined) {
       if (!isValid(name)) {
         return res.status(400).json({ msg: "Name is Required" });
       }
@@ -177,7 +180,7 @@ const updateProfile = async (req, res) => {
       }
     }
 
-    if (email) {
+    if (email !== undefined) {
       if (!isValid(email)) {
         return res.status(400).json({ msg: "Email is Required" });
       }
@@ -186,52 +189,79 @@ const updateProfile = async (req, res) => {
         return res.status(400).json({ msg: "Invalid Email" });
       }
 
-      const duplicateEmail = await userModel.findOne({ email });
+      const duplicateEmail = await userModel.findOne({
+        email,
+        _id: { $ne: req.userId },
+      });
+
       if (duplicateEmail) {
-        return res.status(400).json({ msg: "Email Already Exists" });
+        return res.status(400).json({
+          msg: "Email Already Exists",
+        });
       }
     }
 
-    if (contactNo) {
+    if (contactNo !== undefined) {
       if (!isValid(contactNo)) {
-        return res.status(400).json({ msg: "Contact Number is Required" });
+        return res.status(400).json({
+          msg: "Contact Number is Required",
+        });
       }
+
       if (!isValidContact(contactNo)) {
-        return res.status(400).json({ msg: "Invalid Contact Number" });
+        return res.status(400).json({
+          msg: "Invalid Contact Number",
+        });
       }
 
-      const duplicateContact = await userModel.findOne({ contactNo });
+      const duplicateContact = await userModel.findOne({
+        contactNo,
+        _id: { $ne: req.userId },
+      });
+
       if (duplicateContact) {
-        return res.status(400).json({ msg: "Contact Number Already Exists" });
+        return res.status(400).json({
+          msg: "Contact Number Already Exists",
+        });
       }
     }
 
-    if (password) {
-      if (!isValid(password)) {
-        return res.status(400).json({ msg: "Password is Required" });
-      }
+    let updatedUser = await userModel.findByIdAndUpdate(req.userId, userData, {
+      new: true,
+    });
 
-      if (!isValidPassword(password)) {
-        return res.status(400).json({ msg: "Invalid Password" });
-      }
+    return res.status(200).json({
+      msg: "Profile Updated Successfully",
+      updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      msg: "Internal Server Error",
+    });
+  }
+};
 
-      let hashedPassword = await bcrypt.hash(password, 10);
-      userData.password = hashedPassword;
+// Delete Profile
+const deleteProfile = async (req, res) => {
+  try {
+    let user = await userModel.findByIdAndDelete(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User Not Found" });
     }
 
-    let updateUser = await userModel.findByIdAndUpdate(
-      { userId: req.userId },
-      userData,
-      { new: true },
-    );
-
-    return res
-      .status(200)
-      .json({ msg: "Profile Updated Successfully", updateUser });
+    return res.status(200).json({ msg: "Profile Deleted Successfully" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 };
 
-module.exports = { signupUser, loginUser, getProfile, updateProfile };
+module.exports = {
+  signupUser,
+  loginUser,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+};
