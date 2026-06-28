@@ -6,6 +6,7 @@ const {
   isValidEmail,
   isValidContact,
   isValidPassword,
+  isValidObjectId,
 } = require("../utils/validator");
 const jwt = require("jsonwebtoken");
 
@@ -258,10 +259,72 @@ const deleteProfile = async (req, res) => {
   }
 };
 
+// Get All Users (Admin)
+const getAllUsers = async (req, res) => {
+  try {
+    let users = await userModel.find().select("-password");
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        msg: "No Users Found",
+      });
+    }
+
+    return res.status(200).json({
+      users,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      msg: "Internal Server Error",
+    });
+  }
+};
+
+// Delete User (Admin)
+const deleteUser = async (req, res) => {
+  try {
+    let userId = req.params.id;
+
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({
+        msg: "Invalid User Id",
+      });
+    }
+
+    let user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User Not Found",
+      });
+    }
+
+    if (user.role === "admin") {
+      return res.status(403).json({
+        msg: "Admin Cannot Be Deleted",
+      });
+    }
+
+    await userModel.findByIdAndDelete(userId);
+
+    return res.status(200).json({
+      msg: "User Deleted Successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      msg: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   signupUser,
   loginUser,
   getProfile,
   updateProfile,
   deleteProfile,
+  getAllUsers,
+  deleteUser,
 };
